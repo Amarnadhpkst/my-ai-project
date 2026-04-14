@@ -1,9 +1,10 @@
 from flask import Flask
 from routes.api import api_blueprint
 from logger import setup_logger
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 # ✅ Enable logging
 setup_logger()
 

@@ -1,6 +1,7 @@
 import logging
 from flask import Blueprint, jsonify, request
 from services.logic import process_data
+from services.auth import login_user
 
 api_blueprint = Blueprint("api", __name__)
 
@@ -50,3 +51,31 @@ def predict():
         },
         "error": None
     })
+@api_blueprint.route("/api/v1/login", methods=["POST"])
+def login():
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "success": False,
+            "error": "No input provided"
+        }), 400
+
+    username = data.get("username")
+    password = data.get("password")
+
+    result = login_user(username, password)
+
+    if result["status"]:
+        return jsonify({
+            "success": True,
+            "data": result,
+            "error": None
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "data": None,
+            "error": result["message"]
+        }), 401
