@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            text-align: center;
+            padding-top: 100px;
+        }
+
+        .box {
+            background: white;
+            padding: 30px;
+            width: 300px;
+            margin: auto;
+            border-radius: 10px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            background: red;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>Dashboard</h2>
+
+    <p id="welcome"></p>
+
+    <button onclick="logout()">Logout</button>
+</div>
+
+<script>
+
+    // ✅ Check session
+    let user = localStorage.getItem("user");
+
+    if (!user) {
+        window.location.href = "login.html";
+    }
+
+    document.getElementById("welcome").innerText =
+        "Welcome " + user;
+
+    function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "login.html";
+    }
+
+</script>
+
+</body>
+</html>

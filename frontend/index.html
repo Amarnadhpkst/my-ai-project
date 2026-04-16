@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI DevOps Portal</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #result {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        #error {
+            color: red;
+        }
+
+        #loading {
+            display: none;
+            color: orange;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>AI DevOps Portal</h2>
+
+        <input type="number" id="inputValue" placeholder="Enter value" />
+
+        <br>
+
+        <button onclick="predict()">Predict</button>
+
+        <p id="loading">Processing...</p>
+
+        <p id="result"></p>
+        <p id="error"></p>
+    </div>
+
+    <script>
+        async function predict() {
+            let value = document.getElementById("inputValue").value;
+
+            document.getElementById("error").innerText = "";
+            document.getElementById("result").innerText = "";
+
+            if (!value) {
+                document.getElementById("error").innerText = "Please enter a value";
+                return;
+            }
+
+            document.getElementById("loading").style.display = "block";
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/api/v1/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ value: Number(value) })
+                });
+
+                const data = await response.json();
+
+                document.getElementById("loading").style.display = "none";
+
+                if (data.success) {
+                    document.getElementById("result").innerText =
+                        "Prediction: " + data.data.prediction;
+                } else {
+                    document.getElementById("error").innerText = data.error;
+                }
+
+            } catch (err) {
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("error").innerText = "Backend not reachable";
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px;
+            background: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: darkgreen;
+        }
+
+        #error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>Login</h2>
+
+    <!-- ✅ FORM (ENTER KEY WORKS) -->
+    <form onsubmit="handleSubmit(event)">
+        <input type="text" id="username" placeholder="Username" required autofocus>
+        <input type="password" id="password" placeholder="Password" required>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <!-- ✅ ERROR MESSAGE -->
+    <p id="error"></p>
+</div>
+
+<script>
+async function handleSubmit(event) {
+    event.preventDefault(); // ❗ prevent page reload
+
+    // ✅ Clear old error
+    document.getElementById("error").innerText = "";
+
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+
+    try {
+        const response = await fetch("http://127.0.0.1:5000/api/v1/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        console.log("API Response:", data); // ✅ Debug
+
+        if (data.success === true) {
+            // ✅ Store session
+            localStorage.setItem("user", username);
+
+            // ✅ Redirect
+            window.location.href = "dashboard.html";
+        } else {
+            // ✅ Show error
+            document.getElementById("error").innerText =
+                data.error || "Invalid username or password";
+        }
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById("error").innerText =
+            "Server error (check backend or CORS)";
+    }
+}
+</script>
+
+</body>
+</html>

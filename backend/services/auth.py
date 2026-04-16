@@ -1,7 +1,10 @@
+from models.model import User
+
 def login_user(username, password):
 
-    # Dummy user (for now)
-    if username == "admin" and password == "admin123":
+    user = User.query.filter_by(username=username).first()
+
+    if user and user.password == password:
         return {
             "status": True,
             "message": "Login successful"
