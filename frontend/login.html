@@ -87,6 +87,7 @@ async function handleSubmit(event) {
         console.log("API Response:", data); // ✅ Debug
 
         if (data.success === true) {
+            localStorage.setItem("token", data.data.token);
             // ✅ Store session
             localStorage.setItem("user", username);
 

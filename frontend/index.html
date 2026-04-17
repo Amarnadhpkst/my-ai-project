@@ -73,46 +73,69 @@
         <p id="error"></p>
     </div>
 
-    <script>
-        async function predict() {
-            let value = document.getElementById("inputValue").value;
+   <script>
+async function predict() {
 
-            document.getElementById("error").innerText = "";
-            document.getElementById("result").innerText = "";
+    let value = document.getElementById("inputValue").value;
 
-            if (!value) {
-                document.getElementById("error").innerText = "Please enter a value";
-                return;
-            }
+    // Clear previous messages
+    document.getElementById("error").innerText = "";
+    document.getElementById("result").innerText = "";
 
-            document.getElementById("loading").style.display = "block";
+    // Validate input
+    if (!value) {
+        document.getElementById("error").innerText = "Please enter a value";
+        return;
+    }
 
-            try {
-                const response = await fetch("http://127.0.0.1:5000/api/v1/predict", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ value: Number(value) })
-                });
+    // ✅ GET TOKEN
+    const token = localStorage.getItem("token");
 
-                const data = await response.json();
+    if (!token) {
+        document.getElementById("error").innerText = "Please login first";
+        return;
+    }
 
-                document.getElementById("loading").style.display = "none";
+    // ✅ SHOW LOADING (ADD HERE)
+    document.getElementById("loading").style.display = "block";
 
-                if (data.success) {
-                    document.getElementById("result").innerText =
-                        "Prediction: " + data.data.prediction;
-                } else {
-                    document.getElementById("error").innerText = data.error;
-                }
+    try {
+        const response = await fetch("http://127.0.0.1:5000/api/v1/predict", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token
+            },
+            body: JSON.stringify({ value: Number(value) })
+        });
 
-            } catch (err) {
-                document.getElementById("loading").style.display = "none";
-                document.getElementById("error").innerText = "Backend not reachable";
-            }
+        const data = await response.json();
+
+        // ✅ HIDE LOADING (ADD HERE)
+        document.getElementById("loading").style.display = "none";
+
+        // Handle unauthorized
+        if (response.status === 401) {
+            document.getElementById("error").innerText = "Session expired. Please login again.";
+            return;
         }
-    </script>
+
+        if (data.success) {
+            document.getElementById("result").innerText =
+                "Prediction: " + data.data.prediction;
+        } else {
+            document.getElementById("error").innerText = data.error;
+        }
+
+    } catch (err) {
+
+        // ✅ HIDE LOADING (ADD HERE ALSO)
+        document.getElementById("loading").style.display = "none";
+
+        document.getElementById("error").innerText = "Backend error";
+    }
+}
+</script>
 
 </body>
 </html>
