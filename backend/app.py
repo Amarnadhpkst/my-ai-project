@@ -24,7 +24,10 @@ app.register_blueprint(api_blueprint)
 # ✅ Create DB tables + CHECK DATA
 with app.app_context():
     db.create_all()
-
+    if not User.query.filter_by(username="admin").first():
+        user = User(username="admin", password="admin123")
+        db.session.add(user)
+        db.session.commit()
 
 # ✅ Global Exception Handling
 @app.errorhandler(Exception)
@@ -34,9 +37,6 @@ def handle_exception(e):
         "data": None,
         "error": str(e)
     }, 500
-
-with app.app_context():
-    db.create_all()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
