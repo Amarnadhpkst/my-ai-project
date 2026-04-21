@@ -1,0 +1,36 @@
+---
+version: '3.8'
+
+services:
+
+  backend:
+    build: ./backend
+    container_name: backend_app
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+    restart: always
+
+  frontend:
+    image: nginx:alpine
+    container_name: frontend_app
+    ports:
+      - "8080:80"   
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    restart: always
+
+  db:
+    image: postgres:13
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    restart: always
+...

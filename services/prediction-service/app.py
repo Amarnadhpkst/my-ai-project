@@ -1,5 +1,5 @@
 from flask import Flask
-from routes.auth_routes import predict_blueprint
+from routes.predict_routes import predict_blueprint
 
 app = Flask(__name__)
 
