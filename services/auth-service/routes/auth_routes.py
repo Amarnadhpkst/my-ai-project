@@ -3,11 +3,17 @@ import jwt
 import datetime
 import bcrypt
 from db import get_connection
+from dotenv import load_dotenv
+import os
+
+#loading of environment variables from .env file
+load_dotenv()
 
 auth_blueprint = Blueprint("auth", __name__)
 
 # 🔥 Use strong key (same in prediction service)
-SECRET_KEY = "my_super_secret_key_1234567890"
+SECRET_KEY = os.getenv("SECRET_KEY")
+print("AUTH SERVICE SECRET_KEY:", SECRET_KEY) #` Debug`
 
 
 # ✅ Health Check

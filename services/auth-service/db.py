@@ -1,15 +1,11 @@
 import psycopg2
+import os
 
 def get_connection():
-    try:
-        conn = psycopg2.connect(
-            host="postgres",
-            database="mydb",
-            user="admin",
-            password="admin",
-            connect_timeout=5
-        )
-        return conn
-    except Exception as e:
-        print("Database connection error:", e)
-        raise
+    conn = psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
+    )
+    return conn
