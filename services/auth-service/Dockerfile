@@ -1,6 +1,6 @@
 FROM python:3.10
 WORKDIR /app
 COPY . .
-RUN pip install flask PyJWT
-EXPOSE 5001
+RUN apt-get update && apt-get install -y gcc
+RUN pip install -r requirements.txt
 CMD ["python", "app.py"]
