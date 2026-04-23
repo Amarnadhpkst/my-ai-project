@@ -6,10 +6,11 @@ from db import get_connection
 
 auth_blueprint = Blueprint("auth", __name__)
 
-SECRET_KEY = "my_super_secret_key_12345"
+# 🔥 Use strong key (same in prediction service)
+SECRET_KEY = "my_super_secret_key_1234567890"
 
 
-# Health
+# ✅ Health Check
 @auth_blueprint.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "auth service running"})
@@ -30,7 +31,7 @@ def register():
         conn = get_connection()
         cursor = conn.cursor()
 
-        # hash password
+        # 🔐 Hash password
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
         cursor.execute(
@@ -75,13 +76,17 @@ def login():
 
         stored_password = user[0]
 
-        # check password
+        # 🔐 Validate password
         if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
 
             token = jwt.encode({
                 "user": username,
                 "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
             }, SECRET_KEY, algorithm="HS256")
+
+            # 🔥 FIX: ensure string token (very important)
+            if isinstance(token, bytes):
+                token = token.decode('utf-8')
 
             return jsonify({
                 "success": True,
