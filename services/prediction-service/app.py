@@ -3,6 +3,7 @@ from routes.predict_routes import predict_blueprint
 
 app = Flask(__name__)
 
+# Register routes
 app.register_blueprint(predict_blueprint)
 
 if __name__ == "__main__":

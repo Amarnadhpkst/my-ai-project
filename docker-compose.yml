@@ -1,36 +1,50 @@
----
-version: '3.8'
-
 services:
 
-  backend:
-    build: ./backend
-    container_name: backend_app
+  auth-service:
+    build: ./services/auth-service
+    container_name: auth-service
     ports:
-      - "5000:5000"
-    volumes:
-      - ./backend:/app
+      - "5001:5001"
+    env_file:
+      - ./services/auth-service/.env
     depends_on:
-      - db
-    restart: always
+      - postgres
 
-  frontend:
-    image: nginx:alpine
-    container_name: frontend_app
+  prediction-service:
+    build: ./services/prediction-service
+    container_name: prediction-service
     ports:
-      - "8080:80"   
-    volumes:
-      - ./frontend:/usr/share/nginx/html
-    restart: always
+      - "5002:5002"
+    env_file:
+      - ./services/prediction-service/.env
+    depends_on:
+      - auth-service
 
-  db:
+  postgres:
     image: postgres:13
     container_name: postgres_db
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
+      POSTGRES_PASSWORD: admin
       POSTGRES_DB: mydb
     ports:
       - "5432:5432"
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+    - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: always
-...
+
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_gateway
+    ports:
+      - "8080:80"
+    volumes:
+    - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - auth-service
+      - prediction-service
+
+volumes:
+  postgres_data:
