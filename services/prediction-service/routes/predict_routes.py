@@ -3,95 +3,118 @@ import jwt
 from dotenv import load_dotenv
 import os
 import logging
+from prometheus_client import Counter, Histogram
+import time
 
-# ✅ Logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("app.log"),
-        logging.StreamHandler()
-    ]
-)
-
-# ✅ Load env
+# =========================
+# Load environment variables
+# =========================
 load_dotenv()
 
+# =========================
+# Blueprint
+# =========================
 predict_blueprint = Blueprint("predict", __name__)
 
-# 🔐 SECRET KEY (must match auth service)
+# =========================
+# Secret Key
+# =========================
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-print("PREDICTION SERVICE SECRET_KEY:", SECRET_KEY)
+# =========================
+# Logging
+# =========================
+logging.basicConfig(level=logging.INFO)
 
+# =========================
+# Prometheus Metrics
+# =========================
+REQUEST_COUNT = Counter(
+    "prediction_request_count_total",
+    "Total prediction requests"
+)
 
-# ✅ Health Check
+REQUEST_LATENCY = Histogram(
+    "prediction_request_latency_seconds",
+    "Prediction request latency in seconds"
+)
+
+# =========================
+# Health Check
+# =========================
 @predict_blueprint.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "prediction service running"})
 
 
-# 🤖 Prediction API
+# =========================
+# Prediction API
+# =========================
 @predict_blueprint.route("/predict", methods=["POST"])
 def predict():
 
+    start_time = time.time()
+
     logging.info("Prediction request received")
 
-    # ✅ Step 1: Check JSON
+    # =========================
+    # Validate request type
+    # =========================
     if not request.is_json:
-        logging.warning("Request is not JSON")
         return jsonify({
             "success": False,
             "message": "Content-Type must be application/json"
         }), 415
 
-    # ✅ Step 2: Get Authorization
+    data = request.get_json()
+
+    # =========================
+    # Auth header check
+    # =========================
     auth_header = request.headers.get("Authorization")
 
     if not auth_header:
-        logging.warning("Token missing")
         return jsonify({
             "success": False,
             "message": "Token missing"
         }), 401
 
     try:
-        # ✅ Step 3: Validate format
         parts = auth_header.split(" ")
 
         if len(parts) != 2 or parts[0] != "Bearer":
-            logging.warning("Invalid token format")
             return jsonify({
                 "success": False,
                 "message": "Invalid token format"
             }), 401
 
-        # ✅ Step 4: Decode token
         token = parts[1]
+
         decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
 
         logging.info(f"Token valid for user: {decoded.get('user')}")
 
     except Exception as e:
-        logging.error(f"Token validation failed: {str(e)}")
         return jsonify({
             "success": False,
             "message": "Invalid token",
             "error": str(e)
         }), 401
 
-    # ✅ Step 5: Process data
-    data = request.get_json()
-    value = data.get("value", 0)
-
-    logging.info(f"Prediction input value: {value}")
-
+    # =========================
+    # Business logic
+    # =========================
     try:
-        value = int(value)
-
+        value = int(data.get("value", 0))
         result = "High" if value > 10 else "Low"
 
-        logging.info(f"Prediction result: {result}")
+        # =========================
+        # Metrics (ONLY successful request)
+        # =========================
+        REQUEST_COUNT.inc()
+
+        latency = time.time() - start_time
+        REQUEST_LATENCY.observe(latency)
 
         return jsonify({
             "success": True,
@@ -102,8 +125,7 @@ def predict():
         })
 
     except Exception as e:
-        logging.error(f"Prediction error: {str(e)}")
         return jsonify({
             "success": False,
             "error": str(e)
-        })
+        }), 400
